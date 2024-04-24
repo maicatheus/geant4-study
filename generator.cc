@@ -15,7 +15,7 @@ void MyPrimaryGenerator::GeneratePrimaries(G4Event * anEvent){
     G4ParticleDefinition *particle = particleTable->FindAntiParticle(particleName);
 
     G4ThreeVector pos(0.,0.,0.);
-    G4ThreeVector mom(1,1,1);
+    G4ThreeVector mom(0,0,1);
 
     fParticleGun->SetParticlePosition(pos);
     fParticleGun->SetParticleMomentumDirection(mom);
