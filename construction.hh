@@ -18,6 +18,10 @@ public:
     MyDetectorConstuction();
     ~MyDetectorConstuction();
 
+    G4LogicalVolume *GetScoringVolume() const {
+        return fScoringVolume;
+    }
+
     virtual G4VPhysicalVolume *Construct();
 
 private:
@@ -33,6 +37,8 @@ private:
 
     G4Material *SiO2, *H2O, *Aerogel, *worldMat;
     G4Element *C;
+
+    G4LogicalVolume *fScoringVolume;
 
     void DefineMaterials();
 };
