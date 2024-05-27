@@ -4,12 +4,21 @@ MyRunAction::MyRunAction(){
     G4AnalysisManager *man = G4AnalysisManager::Instance();
 
     //if change some Column, i have to change in detectot man->fill
+    man->CreateNtuple("Photons", "Photons");
+    man->CreateNtupleIColumn("fEvent");
+    man->CreateNtupleDColumn("fX");
+    man->CreateNtupleDColumn("fY");
+    man->CreateNtupleDColumn("fZ");
+    man->CreateNtupleDColumn("fwlen");
+    man->FinishNtuple(0);
+
+
     man->CreateNtuple("Hits", "Hits");
     man->CreateNtupleIColumn("fEvent");
     man->CreateNtupleDColumn("fX");
     man->CreateNtupleDColumn("fY");
     man->CreateNtupleDColumn("fZ");
-    man->FinishNtuple(0);
+    man->FinishNtuple(1);
 };
 
 MyRunAction::~MyRunAction(){};
