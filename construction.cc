@@ -7,18 +7,20 @@ MyDetectorConstuction::MyDetectorConstuction(){
     fMessenger->DeclareProperty("nRows", nRows, "Number of rows");
     fMessenger->DeclareProperty("isCherenkov", isCherenkov, "Toggle Cherenkov setup");
     fMessenger->DeclareProperty("isScintillator", isScintillator, "Toggle Scintillator setup");
+    fMessenger->DeclareProperty("isTOF", isTOF, "Toggle Time od Flight setup");
 
     nCols = 100;
     nRows = 100;
     // control/execute vis.mac
     DefineMaterials();
 
-    xWorld = 0.5*m;
-    yWorld = 0.5*m;
-    zWorld = 0.5*m;
+    xWorld = 5*m;
+    yWorld = 5*m;
+    zWorld = 5*m;
 
     isCherenkov = false;
-    isScintillator = true;
+    isScintillator = false;
+    isTOF = true;
 
 };
 
@@ -143,6 +145,14 @@ void MyDetectorConstuction::ConstructScintillator(){
     }
 }
 
+void MyDetectorConstuction::ConstructTOF(){
+    solidDetector = new G4Box("solidDetector", 1.*m, 1.*m, 0.1*m);
+
+    logicDetector = new G4LogicalVolume(solidDetector, worldMat, "logicDetector");
+    physDetector = new G4PVPlacement(0, G4ThreeVector(0.*m, 0.*m, -4.*m), logicDetector, "physDetector", logicWorld, false,0, true);
+    physDetector = new G4PVPlacement(0, G4ThreeVector(0.*m, 0.*m, 3.*m), logicDetector, "physDetector", logicWorld, false,1, true);
+
+}
 
 G4VPhysicalVolume *MyDetectorConstuction::Construct(){
 
@@ -158,6 +168,8 @@ G4VPhysicalVolume *MyDetectorConstuction::Construct(){
     if(isScintillator)
         ConstructScintillator();
 
+    if(isTOF)
+        ConstructTOF();
     return physWorld;
 }
 

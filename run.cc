@@ -10,6 +10,7 @@ MyRunAction::MyRunAction(){
     man->CreateNtupleDColumn("fY");
     man->CreateNtupleDColumn("fZ");
     man->CreateNtupleDColumn("fwlen");
+    man->CreateNtupleDColumn("fT");
     man->FinishNtuple(0);
 
 

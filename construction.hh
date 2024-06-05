@@ -32,7 +32,7 @@ private:
     G4int nCols, nRows;
 
     G4double xWorld, yWorld, zWorld;
-    G4bool isCherenkov, isScintillator;
+    G4bool isCherenkov, isScintillator, isTOF;
 
     G4OpticalSurface *mirrorSurface;
 
@@ -51,6 +51,7 @@ private:
 
     void ConstructCherenkov();
     void ConstructScintillator();
+    void ConstructTOF();
 };
  
 #endif
