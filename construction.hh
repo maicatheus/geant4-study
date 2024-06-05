@@ -8,9 +8,10 @@
 #include "G4Tubs.hh"
 #include "G4PVPlacement.hh"
 #include "G4NistManager.hh"
+#include "G4OpticalSurface.hh"
 #include "G4SystemOfUnits.hh"
 #include "G4GenericMessenger.hh"
-
+#include "G4LogicalSkinSurface.hh"
 #include "detector.hh"
 
 
@@ -33,8 +34,9 @@ private:
     G4double xWorld, yWorld, zWorld;
     G4bool isCherenkov, isScintillator;
 
-    G4Box *solidWorld, *solidRadiator, *solidDetector;
-    G4Tubs *solidScintillator;
+    G4OpticalSurface *mirrorSurface;
+
+    G4Box *solidWorld, *solidRadiator, *solidDetector, *solidScintillator;
     G4LogicalVolume *logicWorld, *logicRadiator, *logicDetector, *logicScintillator;
     G4VPhysicalVolume *physWorld, *physRadiator, *physDetector, *physScintillator;
 

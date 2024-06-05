@@ -50,7 +50,7 @@ G4bool MySensitiveDetector::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhis
     G4ThreeVector posDetector = physVol->GetTranslation();
 
     #ifndef G4MULTITHREADED
-        G4cout << "Detector position: " << posDetector << G4endl;
+        // G4cout << "Detector position: " << posDetector << G4endl;
     #endif
 
     G4int evt = G4RunManager::GetRunManager()->GetCurrentEvent()->GetEventID();
