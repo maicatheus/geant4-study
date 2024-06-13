@@ -8,19 +8,21 @@ MyDetectorConstuction::MyDetectorConstuction(){
     fMessenger->DeclareProperty("isCherenkov", isCherenkov, "Toggle Cherenkov setup");
     fMessenger->DeclareProperty("isScintillator", isScintillator, "Toggle Scintillator setup");
     fMessenger->DeclareProperty("isTOF", isTOF, "Toggle Time od Flight setup");
+    fMessenger->DeclareProperty("atmosphere", isAtmosphere, "Toggle Atmosphere");
 
     nCols = 100;
     nRows = 100;
     // control/execute vis.mac
     DefineMaterials();
 
-    xWorld = 5*m;
-    yWorld = 5*m;
-    zWorld = 5*m;
+    xWorld = 40*km;
+    yWorld = 40*km;
+    zWorld = 20*km;
 
     isCherenkov = false;
     isScintillator = false;
-    isTOF = true;
+    isTOF = false;
+    isAtmosphere = true;
 
 };
 
@@ -92,9 +94,43 @@ void MyDetectorConstuction::DefineMaterials(){
     mptMirror->AddProperty("REFLECTIVITY", energy, reflectivity, 2);
 
     mirrorSurface->SetMaterialPropertiesTable(mptMirror);
+
+    //atmosphere construct
+    G4double density0 = 1.29*kg/m3;
+    G4double aN = 14.01*g/mole;
+    G4double aO = 16.00*g/mole;
+
+    N = new G4Element("Nitrogen", "N", 7, aN);
+    O = new G4Element("Oxygen", "O", 8, aO);
+
+    G4double f = 3;
+    G4double R = 8.3144626181532;
+    G4double g0 = 9.81;
+    G4double kappa = (f+2)/f;
+    G4double T = 293.15;
+    G4double M = (0.3*aO + 0.7*aN)/1000.;
+
+    for(G4int i = 0; i < 10; i++){
+        std::stringstream stri;
+        stri << i;
+        G4double h = 40e3/10.*i;
+        G4double density = density0*pow((1-(kappa)/kappa*M*g0*h/(R*T)), (1/(kappa - 1)));
+        Air[i] = new G4Material("G4_AIR"+stri.str(), density, 2);
+        Air[i]->AddElement(N, 70*perCent);
+        Air[i]->AddElement(O, 30*perCent);
+    }
 }
 
 MyDetectorConstuction::~MyDetectorConstuction(){};
+
+void MyDetectorConstuction::ConstructAtmosphere(){
+    solidAtmosphere = new G4Box("solidAir", xWorld, yWorld, zWorld/10.);
+    for(G4int i = 0; i < 10; i++){
+        logicAtmosphere[i] = new G4LogicalVolume(solidAtmosphere, Air[i], "logicAtmosphere");
+        physAtmosphere[i] = new G4PVPlacement(0, G4ThreeVector(0,0,zWorld/10*2*i - zWorld + zWorld/10.), logicAtmosphere[i], "physAtmosphere", logicWorld, false, i, true);
+    }
+
+}
 
 void MyDetectorConstuction::ConstructCherenkov(){
 
@@ -170,6 +206,10 @@ G4VPhysicalVolume *MyDetectorConstuction::Construct(){
 
     if(isTOF)
         ConstructTOF();
+
+    if(isAtmosphere)
+        ConstructAtmosphere();
+        
     return physWorld;
 }
 
@@ -177,7 +217,7 @@ G4VPhysicalVolume *MyDetectorConstuction::Construct(){
 void MyDetectorConstuction::ConstructSDandField(){
     
     MySensitiveDetector *sensDet = new MySensitiveDetector("SensitiveDetector");
-    if(logicDetector != NULL)
-        logicDetector->SetSensitiveDetector(sensDet);
+    // if(logicDetector != NULL)
+    //     logicDetector->SetSensitiveDetector(sensDet);
     
 }

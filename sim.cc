@@ -6,6 +6,7 @@
 #include "G4VisManager.hh"
 #include "G4VisExecutive.hh"
 #include "G4UIExecutive.hh"
+#include "QGSP_BERT.hh"
 
 #include "construction.hh"
 #include "physics.hh"
@@ -24,6 +25,10 @@ int main(int argc, char** argv){
     runManager->SetUserInitialization(new  MyDetectorConstuction());
     runManager->SetUserInitialization(new  MyPhysicsList());
     runManager->SetUserInitialization(new  MyActionInitialization());
+
+    G4VModularPhysicsList* physics = new QGSP_BERT();
+    physics->RegisterPhysics(new G4DecayPhysics());
+    runManager->SetUserInitialization(physics);
         
     
     if(argc == 1){

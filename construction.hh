@@ -25,33 +25,36 @@ public:
     }
 
     virtual G4VPhysicalVolume *Construct();
+    void ConstructCherenkov();
+    void ConstructScintillator();
+    void ConstructTOF();
+    void ConstructAtmosphere();
 
 private:
-    virtual void ConstructSDandField();
     
     G4int nCols, nRows;
 
     G4double xWorld, yWorld, zWorld;
-    G4bool isCherenkov, isScintillator, isTOF;
+    G4bool isCherenkov, isScintillator, isTOF, isAtmosphere;
 
     G4OpticalSurface *mirrorSurface;
 
-    G4Box *solidWorld, *solidRadiator, *solidDetector, *solidScintillator;
-    G4LogicalVolume *logicWorld, *logicRadiator, *logicDetector, *logicScintillator;
-    G4VPhysicalVolume *physWorld, *physRadiator, *physDetector, *physScintillator;
+    G4Box *solidWorld, *solidRadiator, *solidDetector, *solidScintillator, *solidAtmosphere;
+    G4LogicalVolume *logicWorld, *logicRadiator, *logicDetector, *logicScintillator, *logicAtmosphere[10];
+    G4VPhysicalVolume *physWorld, *physRadiator, *physDetector, *physScintillator, *physAtmosphere[10];
+    
+    void DefineMaterials();
+    virtual void ConstructSDandField();
 
     G4GenericMessenger *fMessenger;
 
-    G4Material *SiO2, *H2O, *Aerogel, *worldMat, *NaI;
-    G4Element *C, *Na, *I;
+    G4Material *SiO2, *H2O, *Aerogel, *worldMat, *NaI, *Air[10];
+    G4Element *C, *Na, *I, *N, *O;
 
     G4LogicalVolume *fScoringVolume;
 
-    void DefineMaterials();
 
-    void ConstructCherenkov();
-    void ConstructScintillator();
-    void ConstructTOF();
+
 };
  
 #endif
