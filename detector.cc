@@ -40,6 +40,12 @@ G4bool MySensitiveDetector::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhis
     G4double time = preStepPoint->GetGlobalTime();
 
     G4double wlen = (1.239841939*eV/momPhoton.mag())*1E+03;
+    // Calculates the wavelength (wlen) of the photon in nanometers (nm).
+    // The constant 1.239841939 * eV approximately represents the product of
+    // h (Planck constant) and c (speed of light) in units of eV·µm.
+    // We divide this constant by the photon energy (momPhoton.mag() in eV) 
+    // and we multiply by 1E+03 to convert from micrometers (µm) to nanometers (nm).
+    
     // G4cout << "Photon position: " << posPhoton << G4endl;
 
     const G4VTouchable *touchable = aStep->GetPreStepPoint()->GetTouchable();

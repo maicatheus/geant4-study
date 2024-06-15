@@ -15,9 +15,9 @@ MyDetectorConstuction::MyDetectorConstuction(){
     // control/execute vis.mac
     DefineMaterials();
 
-    xWorld = 40*km;
-    yWorld = 40*km;
-    zWorld = 20*km;
+    xWorld = 20*km;
+    yWorld = 20*km;
+    zWorld = 10*km;
 
     isCherenkov = false;
     isScintillator = false;
@@ -26,109 +26,163 @@ MyDetectorConstuction::MyDetectorConstuction(){
 
 };
 
-void MyDetectorConstuction::DefineMaterials(){
+void MyDetectorConstuction::DefineMaterials()
+{
     G4NistManager *nist = G4NistManager::Instance();
 
-    G4double densitySiO2 = 2.201;
-    SiO2 = new G4Material("SiO2", densitySiO2*g/cm3,2);
-    SiO2->AddElement(nist->FindOrBuildElement("Si"), 1);
-    SiO2->AddElement(nist->FindOrBuildElement("O"), 2);
+    G4double energy[2] = {1.239841939 * eV / 0.9, 1.239841939 * eV / 0.2}; // corte em energia hcortado (eV)/lambda (um)
 
-    G4double densityH2O = 2.201;
-    H2O = new G4Material("H2O", densityH2O*g/cm3,2);
-    H2O->AddElement(nist->FindOrBuildElement("H"), 2);
-    H2O->AddElement(nist->FindOrBuildElement("O"), 1);
-
-    C = nist->FindOrBuildElement("C");
-    Aerogel = new G4Material("Aerogel", 0.200*g/cm3,3);
-    Aerogel->AddMaterial(SiO2, 62.5*perCent);
-    Aerogel->AddMaterial(H2O, 37*perCent);
-    Aerogel->AddElement(C, 0.1*perCent);
-
-    worldMat = nist->FindOrBuildMaterial("G4_AIR");
-
-    G4double energy[2] = { 1.239841939*eV/0.9, 1.239841939*eV/0.2 };
-    G4double rindexAerodel[2] = { 1.1,1.1 };
-    G4double rindexWorld[2] = { 1.0,1.0 };
-    G4double rindexNaI[2] = { 1.78, 1.78 };
-    G4double reflectivity[2] = { 1.0,1.0 };
-
-    G4MaterialPropertiesTable *mptAerogel = new G4MaterialPropertiesTable();
-    mptAerogel->AddProperty("RINDEX", energy, rindexAerodel, 2);
-
+    // definindo ar
+    worldMat = nist->FindOrBuildMaterial("G4_AIR"); // mais tarde definir vacuo
+    // indice de refracao
+    G4double rindexWorld[2] = {1.0, 1.0};
+    // setting
     G4MaterialPropertiesTable *mptWorld = new G4MaterialPropertiesTable();
     mptWorld->AddProperty("RINDEX", energy, rindexWorld, 2);
-
-
-
-    Aerogel->SetMaterialPropertiesTable(mptAerogel);
-
-
-    Na = nist->FindOrBuildElement("Na");
-    I = nist->FindOrBuildElement("I");
-    NaI = new G4Material("NaI", 3.67*g/cm3, 2);
-    NaI->AddElement(Na,1);
-    NaI->AddElement(I,1);
-    
-    G4double fraction[2] = {1.0, 1.0}; 
-
-    G4MaterialPropertiesTable *mptNaI = new G4MaterialPropertiesTable();
-    mptNaI->AddProperty("RINDEX", energy, rindexNaI, 2);
-    mptNaI->AddProperty("SCINTILLATIONCOMPONENT1", energy, fraction, 2);
-    mptNaI->AddConstProperty("SCINTILLATIONYIELD", 38./keV);
-    mptNaI->AddConstProperty("RESOLUTIONSCALE", 1.0);
-    mptNaI->AddConstProperty("SCINTILLATIONTIMECONSTANT1", 250*ns);
-    mptNaI->AddConstProperty("SCINTILLATIONYIELD1", 1.);
-    
-    NaI->SetMaterialPropertiesTable(mptNaI);
-
     worldMat->SetMaterialPropertiesTable(mptWorld);
 
-    mirrorSurface = new G4OpticalSurface("mirrorSurface");
+    // definindo ch4
+    // composicao
+    G4int natoms;
+    G4double Z;
+    G4double A;
 
-    mirrorSurface->SetType(dielectric_metal);
-    mirrorSurface->SetFinish(ground);
-    mirrorSurface->SetModel(unified);
+    G4Element *elH = new G4Element("hydrogen", "el_H", Z = 1., A = 1.00794 * g / mole);
 
-    G4MaterialPropertiesTable *mptMirror = new G4MaterialPropertiesTable();
-    mptMirror->AddProperty("REFLECTIVITY", energy, reflectivity, 2);
+    G4Element *elC = new G4Element("carbon", "el_C", Z = 6., A = 12.0107 * g / mole);
 
-    mirrorSurface->SetMaterialPropertiesTable(mptMirror);
+    G4double density = 0.000667151 * g / cm3;
+    G4double pressure = 101325 * pascal;
+    G4double temperature = CLHEP::STP_Temperature;
+    matCH4 = new G4Material("CH4", density, 2, kStateGas, temperature, pressure);
+    matCH4->AddElement(elC, natoms = 1);
+    matCH4->AddElement(elH, natoms = 4);
+    matCH4->GetIonisation()->SetMeanExcitationEnergy(41.7 * eV);
 
-    //atmosphere construct
-    G4double density0 = 1.29*kg/m3;
-    G4double aN = 14.01*g/mole;
-    G4double aO = 16.00*g/mole;
+    // indice de refracao
+    G4double rindexCH4[2] = {1.004, 1.004};
+    // setting
+    G4MaterialPropertiesTable *mptCH4 = new G4MaterialPropertiesTable();
+    mptCH4->AddProperty("RINDEX", energy, rindexCH4, 2);
+    matCH4->SetMaterialPropertiesTable(mptCH4);
 
-    N = new G4Element("Nitrogen", "N", 7, aN);
-    O = new G4Element("Oxygen", "O", 8, aO);
+    // Carbon dioxide, STP
 
-    G4double f = 3;
-    G4double R = 8.3144626181532;
-    G4double g0 = 9.81;
-    G4double kappa = (f+2)/f;
-    G4double T = 293.15;
-    G4double M = (0.3*aO + 0.7*aN)/1000.;
+    G4Element *elO = new G4Element("Oxygen", "elO", Z = 8., A = 15.9994 * g / mole);
 
-    for(G4int i = 0; i < 10; i++){
-        std::stringstream stri;
-        stri << i;
-        G4double h = 40e3/10.*i;
-        G4double density = density0*pow((1-(kappa)/kappa*M*g0*h/(R*T)), (1/(kappa - 1)));
-        Air[i] = new G4Material("G4_AIR"+stri.str(), density, 2);
-        Air[i]->AddElement(N, 70*perCent);
-        Air[i]->AddElement(O, 30*perCent);
-    }
+    density = 0.00184212 * g / cm3;
+    matCO2 = new G4Material("CO2", density, 2,
+                            kStateGas, 273.15 * kelvin, 1. * atmosphere);
+    matCO2->AddElement(elC, natoms = 1);
+    matCO2->AddElement(elO, natoms = 2);
+    matCO2->GetIonisation()->SetMeanExcitationEnergy(85 * eV);
+
+    G4double rindexCO2[2] = {1.00, 1.00};
+    // setting
+    G4MaterialPropertiesTable *mptCO2 = new G4MaterialPropertiesTable();
+    mptCO2->AddProperty("RINDEX", energy, rindexCO2, 2);
+    matCO2->SetMaterialPropertiesTable(mptCO2);
+
 }
+
+
+// void MyDetectorConstuction::DefineMaterials2(){
+//     G4NistManager *nist = G4NistManager::Instance();
+
+//     G4double densitySiO2 = 2.201;
+//     SiO2 = new G4Material("SiO2", densitySiO2*g/cm3,2);
+//     SiO2->AddElement(nist->FindOrBuildElement("Si"), 1);
+//     SiO2->AddElement(nist->FindOrBuildElement("O"), 2);
+
+//     G4double densityH2O = 2.201;
+//     H2O = new G4Material("H2O", densityH2O*g/cm3,2);
+//     H2O->AddElement(nist->FindOrBuildElement("H"), 2);
+//     H2O->AddElement(nist->FindOrBuildElement("O"), 1);
+
+//     C = nist->FindOrBuildElement("C");
+//     Aerogel = new G4Material("Aerogel", 0.200*g/cm3,3);
+//     Aerogel->AddMaterial(SiO2, 62.5*perCent);
+//     Aerogel->AddMaterial(H2O, 37*perCent);
+//     Aerogel->AddElement(C, 0.1*perCent);
+
+//     worldMat = nist->FindOrBuildMaterial("G4_AIR");
+
+//     G4double energy[2] = { 1.239841939*eV/0.9, 1.239841939*eV/0.2 };
+//     G4double rindexAerodel[2] = { 1.1,1.1 };
+//     G4double rindexWorld[2] = { 1.0,1.0 };
+//     G4double rindexNaI[2] = { 1.78, 1.78 };
+//     G4double reflectivity[2] = { 1.0,1.0 };
+
+//     G4MaterialPropertiesTable *mptAerogel = new G4MaterialPropertiesTable();
+//     mptAerogel->AddProperty("RINDEX", energy, rindexAerodel, 2);
+
+//     G4MaterialPropertiesTable *mptWorld = new G4MaterialPropertiesTable();
+//     mptWorld->AddProperty("RINDEX", energy, rindexWorld, 2);
+
+
+
+//     Aerogel->SetMaterialPropertiesTable(mptAerogel);
+
+
+//     Na = nist->FindOrBuildElement("Na");
+//     I = nist->FindOrBuildElement("I");
+//     NaI = new G4Material("NaI", 3.67*g/cm3, 2);
+//     NaI->AddElement(Na,1);
+//     NaI->AddElement(I,1);
+    
+//     G4double fraction[2] = {1.0, 1.0}; 
+
+//     G4MaterialPropertiesTable *mptNaI = new G4MaterialPropertiesTable();
+//     mptNaI->AddProperty("RINDEX", energy, rindexNaI, 2);
+//     mptNaI->AddProperty("SCINTILLATIONCOMPONENT1", energy, fraction, 2);
+//     mptNaI->AddConstProperty("SCINTILLATIONYIELD", 38./keV);
+//     mptNaI->AddConstProperty("RESOLUTIONSCALE", 1.0);
+//     mptNaI->AddConstProperty("SCINTILLATIONTIMECONSTANT1", 250*ns);
+//     mptNaI->AddConstProperty("SCINTILLATIONYIELD1", 1.);
+    
+//     NaI->SetMaterialPropertiesTable(mptNaI);
+
+//     worldMat->SetMaterialPropertiesTable(mptWorld);
+
+//     mirrorSurface = new G4OpticalSurface("mirrorSurface");
+
+//     mirrorSurface->SetType(dielectric_metal);
+//     mirrorSurface->SetFinish(ground);
+//     mirrorSurface->SetModel(unified);
+
+//     G4MaterialPropertiesTable *mptMirror = new G4MaterialPropertiesTable();
+//     mptMirror->AddProperty("REFLECTIVITY", energy, reflectivity, 2);
+
+//     mirrorSurface->SetMaterialPropertiesTable(mptMirror);
+
+//     //atmosphere construct
+//     G4double density0 = 1.29*kg/m3;
+//     G4double aN = 14.01*g/mole;
+//     G4double aO = 16.00*g/mole;
+
+//     N = new G4Element("Nitrogen", "N", 7, aN);
+//     O = new G4Element("Oxygen", "O", 8, aO);
+
+//     G4double f = 3;
+//     G4double R = 8.3144626181532;
+//     G4double g0 = 9.81;
+//     G4double kappa = (f+2)/f;
+//     G4double T = 293.15;
+//     G4double M = (0.3*aO + 0.7*aN)/1000.;
+
+//     G4double h = 40e3;
+//     G4double density = density0*pow((1-(kappa)/kappa*M*g0*h/(R*T)), (1/(kappa - 1)));
+//     Air = new G4Material("G4_AIR", density, 2);
+//     Air->AddElement(N, 70*perCent);
+//     Air->AddElement(O, 30*perCent);
+// }
 
 MyDetectorConstuction::~MyDetectorConstuction(){};
 
 void MyDetectorConstuction::ConstructAtmosphere(){
-    solidAtmosphere = new G4Box("solidAir", xWorld, yWorld, zWorld/10.);
-    for(G4int i = 0; i < 10; i++){
-        logicAtmosphere[i] = new G4LogicalVolume(solidAtmosphere, Air[i], "logicAtmosphere");
-        physAtmosphere[i] = new G4PVPlacement(0, G4ThreeVector(0,0,zWorld/10*2*i - zWorld + zWorld/10.), logicAtmosphere[i], "physAtmosphere", logicWorld, false, i, true);
-    }
+    solidAtmosphere = new G4Box("solidAir", xWorld - 2 * km, yWorld - 2 * km, zWorld);
+    logicAtmosphere = new G4LogicalVolume(solidAtmosphere, worldMat, "logicAtmosphere");
+    physAtmosphere = new G4PVPlacement(0, G4ThreeVector(0,0,0), logicAtmosphere, "physAtmosphere", logicWorld, false, 0, true);
 
 }
 
@@ -180,7 +234,6 @@ void MyDetectorConstuction::ConstructScintillator(){
         }
     }
 }
-
 void MyDetectorConstuction::ConstructTOF(){
     solidDetector = new G4Box("solidDetector", 1.*m, 1.*m, 0.1*m);
 
@@ -217,7 +270,8 @@ G4VPhysicalVolume *MyDetectorConstuction::Construct(){
 void MyDetectorConstuction::ConstructSDandField(){
     
     MySensitiveDetector *sensDet = new MySensitiveDetector("SensitiveDetector");
-    // if(logicDetector != NULL)
-    //     logicDetector->SetSensitiveDetector(sensDet);
+    if(logicAtmosphere != NULL)
+        G4cout << " Im here SetSensitiveDetector" << G4endl;
+        logicAtmosphere->SetSensitiveDetector(sensDet);
     
 }
