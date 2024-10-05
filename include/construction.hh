@@ -9,11 +9,14 @@
 #include "G4Box.hh"
 #include "G4SystemOfUnits.hh"
 
+#include "detector.hh"
 
 class MyDetectorConstruction : public G4VUserDetectorConstruction
 {
 private:
-    /* data */
+    G4LogicalVolume *logicDetector;
+    virtual void ConstructSDandField();
+
 public:
     MyDetectorConstruction(/* args */);
     ~MyDetectorConstruction();
