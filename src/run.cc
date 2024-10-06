@@ -1,15 +1,10 @@
 #include "run.hh"
 
-MyRunAction::MyRunAction(){}
+MyRunAction::MyRunAction()
+{
+    man = G4AnalysisManager::Instance();
 
-MyRunAction::~MyRunAction(){}
-
-void MyRunAction::BeginOfRunAction(const G4Run *){
-    G4AnalysisManager *man= G4AnalysisManager::Instance();
-
-    man->OpenFile("output.root");
-
-    man->CreateNtuple("Hits","Hits");
+    man->CreateNtuple("Hits", "Hits");
     man->CreateNtupleIColumn("fEvent");
     man->CreateNtupleDColumn("fx");
     man->CreateNtupleDColumn("fy");
@@ -17,8 +12,21 @@ void MyRunAction::BeginOfRunAction(const G4Run *){
     man->FinishNtuple(0);
 }
 
-void MyRunAction::EndOfRunAction(const G4Run *){
-    G4AnalysisManager *man= G4AnalysisManager::Instance();
+MyRunAction::~MyRunAction() {}
+
+void MyRunAction::BeginOfRunAction(const G4Run* g4Run){
+
+    G4int runId = g4Run->GetRunID();
+
+    std::stringstream strRunId;
+    strRunId << runId;
+
+    man->OpenFile("output" + strRunId.str() + ".root");
+}
+
+void MyRunAction::EndOfRunAction(const G4Run *)
+{
+    G4AnalysisManager *man = G4AnalysisManager::Instance();
     man->Write();
     man->CloseFile("output.root");
 }
